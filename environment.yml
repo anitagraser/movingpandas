@@ -19,3 +19,6 @@ dependencies:
   - scikit-learn
   - geopy
   - panel
+  - pip
+  - pip:
+      - https://github.com/dstl/Stone-Soup/tarball/master
