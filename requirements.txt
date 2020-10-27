@@ -1,0 +1,8 @@
+numpy
+cython
+matplotlib
+shapely
+pandas
+geopandas
+pyproj
+rtree

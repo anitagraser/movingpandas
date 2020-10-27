@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from fiona.crs import from_epsg
 from movingpandas.trajectory import Trajectory, DIRECTION_COL_NAME, SPEED_COL_NAME, MissingCRSWarning
 
+from .markers import importthenskip
+
 
 CRS_METRIC = from_epsg(31256)
 CRS_LATLON = from_epsg(4326)
@@ -218,16 +220,22 @@ class TestTrajectory:
         assert isinstance(plot, Axes)
 
     def test_hvplot_exists(self):
-        import holoviews
+        holoviews = pytest.importorskip("holoviews")
         plot = self.default_traj_latlon.hvplot(geo=True)
         assert isinstance(plot, holoviews.core.overlay.Overlay)
         assert len(plot.Path.ddims) == 2
 
     def test_hvplot_exists_without_crs(self):
-        import holoviews
+        holoviews = pytest.importorskip("holoviews")
         traj = make_traj([Node(0, 0), Node(10, 10, day=2)], None)
         plot = traj.hvplot()
         assert isinstance(plot, holoviews.core.overlay.Overlay)
+
+    def test_hvplot_fails_without_holoviews(self):
+        importthenskip('holoviews')
+        traj = make_traj([Node(0, 0), Node(10, 10, day=2)], None)
+        with pytest.raises(ImportError):
+            traj.hvplot()
 
     def test_tolinestring_does_not_alter_df(self):
         traj = self.default_traj_metric
@@ -270,7 +278,12 @@ class TestTrajectory:
         traj = Trajectory(geo_df, 1)
         traj.add_speed()
         traj.add_direction()
-        traj.hvplot()
+        try:
+            import holoviews
+        except ModuleNotFoundError:
+            traj.plot()
+        else:
+            traj.hvplot()
 
     def test_support_for_other_geometry_column_names(self):
         df = pd.DataFrame([
@@ -282,7 +295,12 @@ class TestTrajectory:
         traj = Trajectory(geo_df, 1)
         traj.add_speed()
         traj.add_direction()
-        traj.hvplot()
+        try:
+            import holoviews
+        except ModuleNotFoundError:
+            pass
+        else:
+            traj.hvplot()
 
     def test_support_for_other_time_column_names(self):
         df = pd.DataFrame([
@@ -294,13 +312,18 @@ class TestTrajectory:
         traj = Trajectory(geo_df, 1)
         traj.add_speed()
         traj.add_direction()
-        traj.hvplot()
+        try:
+            import holoviews
+        except ModuleNotFoundError:
+            pass
+        else:
+            traj.hvplot()
         traj.plot()
         traj.get_length()
         traj.to_linestring()
         traj.to_linestringm_wkt()
 
-    """ 
+    """
     This test should work but fails in my PyCharm probably due to https://github.com/pyproj4/pyproj/issues/134
 
     def test_crs(self):
@@ -308,4 +331,3 @@ class TestTrajectory:
         new_df = traj.df.to_crs(epsg=3857)
         self.assertEqual(new_df.crs, from_epsg(3857))
     """
-

@@ -1,0 +1,4 @@
+-r requirements.txt
+hvplot
+bokeh>=2.0.0
+geoviews
